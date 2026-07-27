@@ -16,16 +16,16 @@ This project is a Python program that calculates tan(x).
 No external mathematical libraries are required.
 
 ## How to Run
-Download `d2_pythoncode_chayoung_fv.py` and run:
+Download `d2_pythoncode_chayoung.py` and run:
 
 ```bash
-python d2_pythoncode_chayoung_fv.py
+python d2_pythoncode_chayoung.py
 ```
 
 On Windows, you can also run:
 
 ```bash
-py d2_pythoncode_chayoung_fv.py
+py d2_pythoncode_chayoung.py
 ```
 
 ## Author
