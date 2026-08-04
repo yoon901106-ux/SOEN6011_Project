@@ -1,15 +1,17 @@
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 # Version 1.0.0: D2 Final version.
+# Version 1.0.1: Fixed the large-angle precision issue.
 
 import tkinter as tk
 
 # Define PI instead of using math.pi.
 PI = 3.14159265358979323846
 
-# Define MAX_FLOAT instead of using math.isfinite().
-# to reject infinity
-MAX_FLOAT = 1.7976931348623157e308
+
+# Define the maximum supported angle to prevent precision loss.
+MAX_SUPPORTED_RADIANS = 1_000_000.0
+
 
 # Define TOLERANCE as a small value used to represent near zero,
 # because floating-point results may not be exactly zero.
@@ -52,9 +54,7 @@ Reducing the input improves the accuracy and speed of the Taylor series.
 """
 def reduce_angle(angle_in_radians):
     half_pi = PI / 2.0
-    reduced_angle = (
-        (angle_in_radians + half_pi) % PI
-    ) - half_pi
+    reduced_angle = ((angle_in_radians + half_pi) % PI) - half_pi
 
     return reduced_angle
 
@@ -63,6 +63,18 @@ def reduce_angle(angle_in_radians):
 # ------------------------------------------------------------
 
 def calculate_sine_and_cosine(x):
+    sine_sign = 1.0
+    swap_values = False
+
+    # Reduce the Taylor series input to [0, PI/4].
+    if x < 0:
+        sine_sign = -1.0
+        x = -x
+
+    if x > PI / 4.0:
+        x = PI / 2.0 - x
+        swap_values = True
+
     # First terms of the sine and cosine series.
     sine_term = x
     sine_sum = x
@@ -102,7 +114,10 @@ def calculate_sine_and_cosine(x):
 
         term_number = term_number + 1
 
-    return sine_sum, cosine_sum
+    if swap_values:
+       return sine_sign * cosine_sum, sine_sum
+
+    return sine_sign * sine_sum, cosine_sum
 
 
 def calculate_tangent(angle_input, unit):
@@ -133,13 +148,16 @@ def calculate_tangent(angle_input, unit):
     if angle != angle:
         raise InputError("Please enter a valid number. 'nan' is not accepted.")
 
-    # Reject infinity.
-    if angle > MAX_FLOAT or angle < -MAX_FLOAT:
-        raise InputError(f"Please enter a finite number within the range [{-MAX_FLOAT}, {MAX_FLOAT}]. \n"
-                          "'inf' is not accepted.")
-
     # FR-02: Convert degree input to radians before the calculation.
     angle_in_radians = convert_to_radians(angle, unit)
+
+    # Reject unsupported large angles and infinity.
+    if absolute_value(angle_in_radians) > MAX_SUPPORTED_RADIANS:
+        raise InputError(
+            "Please enter an angle between -1,000,000 and 1,000,000 "
+            "radians or the equivalent value in degrees."
+        )
+
 
     # FR-03: Calculate tan(x) using the entered angle and selected unit.
     # FR-06: Use exceptions to handle input and calculation errors.
