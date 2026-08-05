@@ -1,9 +1,13 @@
-__version__ = "1.0.2"
+"""Calculate tangent values using a Tkinter graphical interface."""
+
+__version__ = "1.0.3"
 
 # Version 1.0.0: D2 Final version.
 # Version 1.0.1: Fixed the large-angle precision issue.
 # Version 1.0.2: Fixed Flake8 style issues.
+# Version 1.0.3: Fixed Pylint issues.
 
+from math import isnan
 import tkinter as tk
 
 # Define PI instead of using math.pi.
@@ -22,17 +26,19 @@ TOLERANCE = 1e-12
 # when calculate sin,cos
 MAX_ITERATIONS = 50
 
+GUI_ELEMENTS = {}
+
 # -------------------------
 # Exceptions
 # --------------------------
 
 
 class InputError(Exception):
-    pass
+    """Raised when the user enters an invalid angle."""
 
 
 class UndefinedTangentError(Exception):
-    pass
+    """Raised when the tangent value is undefined."""
 
 # -----------------------
 # functions implemented
@@ -40,6 +46,7 @@ class UndefinedTangentError(Exception):
 
 
 def absolute_value(number):
+    """Return the absolute value of a number."""
     if number < 0:
         return -number
 
@@ -50,20 +57,18 @@ def absolute_value(number):
 
 
 def convert_to_radians(angle, unit):
+    """Return the angle in radians based on the selected unit."""
     if unit == "Degrees":
         return (angle / 180.0) * PI
 
     if unit == "Radians":
         return angle
 
-
-"""
-Reduce the angle using the period of tangent. tan(x) repeats every π radians.
-Reducing the input improves the accuracy and speed of the Taylor series.
-"""
+    raise InputError("Please select Degrees or Radians.")
 
 
 def reduce_angle(angle_in_radians):
+    """Reduce the angle using the period of tangent."""
     half_pi = PI / 2.0
     reduced_angle = ((angle_in_radians + half_pi) % PI) - half_pi
 
@@ -75,6 +80,8 @@ def reduce_angle(angle_in_radians):
 
 
 def calculate_sine_and_cosine(x):
+    """Calculate sine and cosine using Taylor series."""
+
     sine_sign = 1.0
     swap_values = False
 
@@ -134,6 +141,7 @@ def calculate_sine_and_cosine(x):
 
 
 def calculate_tangent(angle_input, unit):
+    """Validate the input and calculate its tangent value."""
 
     # Remove spaces before and after the input.
     # FR-01: Accept one finite real-number angle.
@@ -157,7 +165,7 @@ def calculate_tangent(angle_input, unit):
         ) from error
 
     # Reject NaN.
-    if angle != angle:
+    if isnan(angle):
         raise InputError("Please enter a valid number. 'nan' is not accepted.")
 
     # FR-02: Convert degree input to radians before the calculation.
@@ -215,11 +223,11 @@ def calculate_tangent(angle_input, unit):
 # ------------------------------------------------------------
 
 def calculate_button_clicked():
-
+    """Calculate and display the tangent when the button is clicked."""
     # Calculate tan(x) with angle_input and selected_unit.
     try:
-        angle_input = angle_entry.get()
-        selected_unit = unit_variable.get()
+        angle_input = GUI_ELEMENTS["angle_entry"].get()
+        selected_unit = GUI_ELEMENTS["unit_variable"].get()
 
         result = calculate_tangent(
             angle_input,
@@ -230,34 +238,36 @@ def calculate_button_clicked():
         # result area.
 
         # Display the valid result clearly to six decimal places.
-        result_variable.set(
+        GUI_ELEMENTS["result_variable"].set(
             "Result: " + f"{result:.6f}"
         )
 
     except InputError as error:
-        result_variable.set(
+        GUI_ELEMENTS["result_variable"].set(
             "Input error: " + str(error)
         )
 
     except UndefinedTangentError as error:
-        result_variable.set(
+        GUI_ELEMENTS["result_variable"].set(
             "Undefined: " + str(error)
         )
 
     except ArithmeticError:
         # To catche unexpected arithmetic problems, such as an overflow or
         # invalid division during the calculation.
-        result_variable.set(
+        GUI_ELEMENTS["result_variable"].set(
             "Calculation error: Please try a smaller angle."
         )
 
 
 # Clear the current input and result.
 def clear_button_clicked():
-    angle_entry.delete(0, tk.END)
-    unit_variable.set("Degrees")
-    result_variable.set("Result will appear here.")
-    angle_entry.focus_set()
+    """Clear the input and restore the default display values."""
+
+    GUI_ELEMENTS["angle_entry"].delete(0, tk.END)
+    GUI_ELEMENTS["unit_variable"].set("Degrees")
+    GUI_ELEMENTS["result_variable"].set("Result will appear here.")
+    GUI_ELEMENTS["angle_entry"].focus_set()
 
 
 # NFR-02: clear labels for the angle, unit, calculation action, and result.
@@ -265,9 +275,7 @@ def clear_button_clicked():
 # NFR-05: run using a standard Python interpreter without depending on a
 # particular IDE.
 def create_gui():
-    global angle_entry
-    global unit_variable
-    global result_variable
+    """Create and run the tangent calculator GUI."""
 
     window = tk.Tk()
     window.title("Tangent Calculator")
@@ -385,6 +393,9 @@ def create_gui():
     result_variable = tk.StringVar(
         value="Result will appear here."
     )
+    GUI_ELEMENTS["angle_entry"] = angle_entry
+    GUI_ELEMENTS["unit_variable"] = unit_variable
+    GUI_ELEMENTS["result_variable"] = result_variable
 
     result_label = tk.Label(
         main_frame,
