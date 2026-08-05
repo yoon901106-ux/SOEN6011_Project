@@ -1,7 +1,8 @@
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 
 # Version 1.0.0: D2 Final version.
 # Version 1.0.1: Fixed the large-angle precision issue.
+# Version 1.0.2: Fixed Flake8 style issues.
 
 import tkinter as tk
 
@@ -24,15 +25,20 @@ MAX_ITERATIONS = 50
 # -------------------------
 # Exceptions
 # --------------------------
+
+
 class InputError(Exception):
-      pass
+    pass
+
 
 class UndefinedTangentError(Exception):
-      pass
+    pass
 
 # -----------------------
 # functions implemented
 # -----------------------
+
+
 def absolute_value(number):
     if number < 0:
         return -number
@@ -41,6 +47,8 @@ def absolute_value(number):
 
 # Convert degrees to radians when Degrees is selected.
 # 180 degrees = π radians
+
+
 def convert_to_radians(angle, unit):
     if unit == "Degrees":
         return (angle / 180.0) * PI
@@ -48,10 +56,13 @@ def convert_to_radians(angle, unit):
     if unit == "Radians":
         return angle
 
+
 """
 Reduce the angle using the period of tangent. tan(x) repeats every π radians.
 Reducing the input improves the accuracy and speed of the Taylor series.
 """
+
+
 def reduce_angle(angle_in_radians):
     half_pi = PI / 2.0
     reduced_angle = ((angle_in_radians + half_pi) % PI) - half_pi
@@ -61,6 +72,7 @@ def reduce_angle(angle_in_radians):
 # ------------------------------------------------------------
 # Taylor series calculation
 # ------------------------------------------------------------
+
 
 def calculate_sine_and_cosine(x):
     sine_sign = 1.0
@@ -84,7 +96,8 @@ def calculate_sine_and_cosine(x):
 
     term_number = 1
 
-    # Repeatedly generate the next sine and cosine terms from the previous terms.
+    # Repeatedly generate the next sine and cosine terms from the
+    # previous terms.
     while term_number <= MAX_ITERATIONS:
         sine_term = (
             -sine_term * x * x
@@ -115,7 +128,7 @@ def calculate_sine_and_cosine(x):
         term_number = term_number + 1
 
     if swap_values:
-       return sine_sign * cosine_sum, sine_sum
+        return sine_sign * cosine_sum, sine_sum
 
     return sine_sign * sine_sum, cosine_sum
 
@@ -125,7 +138,6 @@ def calculate_tangent(angle_input, unit):
     # Remove spaces before and after the input.
     # FR-01: Accept one finite real-number angle.
     angle_text = angle_input.strip()
-
 
     # FR-05: Handle empty, non-numeric, and non-finite inputs.
     # NFR-06: Detect angles where tan(x) is undefined.
@@ -158,17 +170,16 @@ def calculate_tangent(angle_input, unit):
             "radians or the equivalent value in degrees."
         )
 
-
     # FR-03: Calculate tan(x) using the entered angle and selected unit.
     # FR-06: Use exceptions to handle input and calculation errors.
     # NFR-01: Produce an accurate result for defined inputs.
     # NFR-03: Implement the mathematical calculation from scratch.
 
-    # Reduce the angle using the period of tangent. tan(x) repeats every π radians.
+    # Reduce the angle using the period of tangent. tan(x) repeats
+    # every π radians.
     # Reducing the input improves the accuracy and speed of the Taylor series.
     #  -π/2 <=  x  <  π/2
     x = reduce_angle(angle_in_radians)
-
 
     # tan(x) is undefined at PI/2 + k*PI.
     half_pi = PI / 2.0
@@ -215,7 +226,8 @@ def calculate_button_clicked():
             selected_unit
         )
 
-  # FR-04: show the calculated result clearly in an identified result area.
+        # FR-04: show the calculated result clearly in an identified
+        # result area.
 
         # Display the valid result clearly to six decimal places.
         result_variable.set(
@@ -233,10 +245,12 @@ def calculate_button_clicked():
         )
 
     except ArithmeticError:
-        # To catche unexpected arithmetic problems, such as an overflow or invalid division during the calculation.
+        # To catche unexpected arithmetic problems, such as an overflow or
+        # invalid division during the calculation.
         result_variable.set(
             "Calculation error: Please try a smaller angle."
         )
+
 
 # Clear the current input and result.
 def clear_button_clicked():
@@ -248,7 +262,8 @@ def clear_button_clicked():
 
 # NFR-02: clear labels for the angle, unit, calculation action, and result.
 # NFR-04: graphical user interface using Tkinter.
-# NFR-05: run using a standard Python interpreter without depending on a particular IDE.
+# NFR-05: run using a standard Python interpreter without depending on a
+# particular IDE.
 def create_gui():
     global angle_entry
     global unit_variable
@@ -367,7 +382,6 @@ def create_gui():
         padx=5
     )
 
-
     result_variable = tk.StringVar(
         value="Result will appear here."
     )
@@ -419,6 +433,7 @@ def create_gui():
 
     angle_entry.focus_set()
     window.mainloop()
+
 
 if __name__ == "__main__":
     create_gui()
